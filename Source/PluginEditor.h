@@ -17,10 +17,19 @@ private:
     // Reference to the processor
     LittleLatchyAudioProcessor& audioProcessor;
     
-    juce::ToggleButton latchButton;
-    juce::ToggleButton multiLatchButton;
+    // UI Colors
+    juce::Colour backgroundColor;
+    juce::Colour headerColor;
+    juce::Colour buttonColor;
+    juce::Colour accentColor;
+    juce::Colour textColor;
+    
+    // UI Components
+    juce::TextButton latchButton;
+    juce::TextButton multiLatchButton;
     juce::TextButton panicButton;
     
+    // Parameter attachments
     std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment> latchAttachment;
     std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment> multiLatchAttachment;
 

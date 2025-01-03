@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.15)
-project(LittleLatchy VERSION 0.1.0)
+project(LittleLatchy VERSION 0.2.0)
 
 # Add JUCE as a subdirectory
 add_subdirectory(JUCE)

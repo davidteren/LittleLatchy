@@ -1,7 +1,7 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 
-LatchyAudioProcessor::LatchyAudioProcessor()
+LittleLatchyAudioProcessor::LittleLatchyAudioProcessor()
     : AudioProcessor (BusesProperties())
     , lastNoteOnTime(0)
     , chordThreshold(50) // ms threshold for chord detection
@@ -29,69 +29,69 @@ LatchyAudioProcessor::LatchyAudioProcessor()
     multiLatchParam->addListener(this);
 }
 
-LatchyAudioProcessor::~LatchyAudioProcessor()
+LittleLatchyAudioProcessor::~LittleLatchyAudioProcessor()
 {
 }
 
-const juce::String LatchyAudioProcessor::getName() const
+const juce::String LittleLatchyAudioProcessor::getName() const
 {
-    return JucePlugin_Name;
+    return "LittleLatchy";
 }
 
-bool LatchyAudioProcessor::acceptsMidi() const
-{
-    return true;
-}
-
-bool LatchyAudioProcessor::producesMidi() const
+bool LittleLatchyAudioProcessor::acceptsMidi() const
 {
     return true;
 }
 
-bool LatchyAudioProcessor::isMidiEffect() const
+bool LittleLatchyAudioProcessor::producesMidi() const
 {
     return true;
 }
 
-double LatchyAudioProcessor::getTailLengthSeconds() const
+bool LittleLatchyAudioProcessor::isMidiEffect() const
+{
+    return true;
+}
+
+double LittleLatchyAudioProcessor::getTailLengthSeconds() const
 {
     return 0.0;
 }
 
-int LatchyAudioProcessor::getNumPrograms()
+int LittleLatchyAudioProcessor::getNumPrograms()
 {
     return 1;
 }
 
-int LatchyAudioProcessor::getCurrentProgram()
+int LittleLatchyAudioProcessor::getCurrentProgram()
 {
     return 0;
 }
 
-void LatchyAudioProcessor::setCurrentProgram (int /*index*/)
+void LittleLatchyAudioProcessor::setCurrentProgram (int /*index*/)
 {
 }
 
-const juce::String LatchyAudioProcessor::getProgramName (int /*index*/)
+const juce::String LittleLatchyAudioProcessor::getProgramName (int /*index*/)
 {
     return {};
 }
 
-void LatchyAudioProcessor::changeProgramName (int /*index*/, const juce::String& /*newName*/)
+void LittleLatchyAudioProcessor::changeProgramName (int /*index*/, const juce::String& /*newName*/)
 {
 }
 
-void LatchyAudioProcessor::prepareToPlay (double /*sampleRate*/, int /*samplesPerBlock*/)
+void LittleLatchyAudioProcessor::prepareToPlay (double /*sampleRate*/, int /*samplesPerBlock*/)
 {
     // Reset state
     heldNotes.clear();
 }
 
-void LatchyAudioProcessor::releaseResources()
+void LittleLatchyAudioProcessor::releaseResources()
 {
 }
 
-void LatchyAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
+void LittleLatchyAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
 {
     buffer.clear();
     
@@ -118,7 +118,7 @@ void LatchyAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
     midiMessages.swapWith(processedMidi);
 }
 
-void LatchyAudioProcessor::handleIncomingMidiMessage(const juce::MidiMessage& message, juce::MidiBuffer& processedMidi, int samplePosition)
+void LittleLatchyAudioProcessor::handleIncomingMidiMessage(const juce::MidiMessage& message, juce::MidiBuffer& processedMidi, int samplePosition)
 {
     if (message.isNoteOn())
     {
@@ -190,12 +190,12 @@ void LatchyAudioProcessor::handleIncomingMidiMessage(const juce::MidiMessage& me
     }
 }
 
-void LatchyAudioProcessor::stopNote(juce::MidiBuffer& processedMidi, int samplePosition, const HeldNote& note)
+void LittleLatchyAudioProcessor::stopNote(juce::MidiBuffer& processedMidi, int samplePosition, const HeldNote& note)
 {
     processedMidi.addEvent(juce::MidiMessage::noteOff(note.channel, note.noteNumber), samplePosition);
 }
 
-void LatchyAudioProcessor::stopAllNotes(juce::MidiBuffer& processedMidi, int samplePosition)
+void LittleLatchyAudioProcessor::stopAllNotes(juce::MidiBuffer& processedMidi, int samplePosition)
 {
     for (const auto& note : heldNotes)
     {
@@ -203,7 +203,7 @@ void LatchyAudioProcessor::stopAllNotes(juce::MidiBuffer& processedMidi, int sam
     }
 }
 
-void LatchyAudioProcessor::sendAllNotesOff(juce::MidiBuffer& processedMidi, int samplePosition)
+void LittleLatchyAudioProcessor::sendAllNotesOff(juce::MidiBuffer& processedMidi, int samplePosition)
 {
     // Stop all held notes
     stopAllNotes(processedMidi, samplePosition);
@@ -217,17 +217,17 @@ void LatchyAudioProcessor::sendAllNotesOff(juce::MidiBuffer& processedMidi, int 
     }
 }
 
-bool LatchyAudioProcessor::hasEditor() const
+bool LittleLatchyAudioProcessor::hasEditor() const
 {
     return true;
 }
 
-juce::AudioProcessorEditor* LatchyAudioProcessor::createEditor()
+juce::AudioProcessorEditor* LittleLatchyAudioProcessor::createEditor()
 {
-    return new juce::GenericAudioProcessorEditor (*this);
+    return new LittleLatchyAudioProcessorEditor (*this);
 }
 
-void LatchyAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
+void LittleLatchyAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
 {
     auto state = juce::ValueTree("MIDIFXState");
     state.setProperty("latch", latchParam->get(), nullptr);
@@ -237,7 +237,7 @@ void LatchyAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
     copyXmlToBinary(*xml, destData);
 }
 
-void LatchyAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
+void LittleLatchyAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
 {
     std::unique_ptr<juce::XmlElement> xml(getXmlFromBinary(data, sizeInBytes));
     if (xml.get() != nullptr && xml->hasTagName("MIDIFXState"))
@@ -254,7 +254,7 @@ void LatchyAudioProcessor::setStateInformation (const void* data, int sizeInByte
     }
 }
 
-void LatchyAudioProcessor::parameterValueChanged(int parameterIndex, float newValue)
+void LittleLatchyAudioProcessor::parameterValueChanged(int parameterIndex, float newValue)
 {
     // Get parameter that changed
     auto* param = getParameters()[parameterIndex];
@@ -271,9 +271,9 @@ void LatchyAudioProcessor::parameterValueChanged(int parameterIndex, float newVa
     }
 }
 
-void LatchyAudioProcessor::parameterGestureChanged(int, bool) {}
+void LittleLatchyAudioProcessor::parameterGestureChanged(int, bool) {}
 
 juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 {
-    return new LatchyAudioProcessor();
+    return new LittleLatchyAudioProcessor();
 }

@@ -2,12 +2,12 @@
 
 #include <juce_audio_processors/juce_audio_processors.h>
 
-class LatchyAudioProcessor : public juce::AudioProcessor,
+class LittleLatchyAudioProcessor : public juce::AudioProcessor,
                            private juce::AudioProcessorParameter::Listener
 {
 public:
-    LatchyAudioProcessor();
-    ~LatchyAudioProcessor() override;
+    LittleLatchyAudioProcessor();
+    ~LittleLatchyAudioProcessor() override;
 
     void prepareToPlay (double sampleRate, int samplesPerBlock) override;
     void releaseResources() override;
@@ -63,5 +63,5 @@ private:
     void stopAllNotes(juce::MidiBuffer& processedMidi, int samplePosition);
     void sendAllNotesOff(juce::MidiBuffer& processedMidi, int samplePosition);
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (LatchyAudioProcessor)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (LittleLatchyAudioProcessor)
 };

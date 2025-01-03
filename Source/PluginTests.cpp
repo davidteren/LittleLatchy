@@ -2,16 +2,16 @@
 #include <juce_core/juce_core.h>
 #include "PluginProcessor.h"
 
-class LatchyPluginTests : public juce::UnitTest
+class LittleLatchyPluginTests : public juce::UnitTest
 {
 public:
-    LatchyPluginTests() : juce::UnitTest("Latchy Plugin Tests") {}
+    LittleLatchyPluginTests() : juce::UnitTest("LittleLatchy Plugin Tests") {}
     
     void runTest() override
     {
         beginTest("Parameter Initialization");
         {
-            LatchyAudioProcessor processor;
+            LittleLatchyAudioProcessor processor;
             expect(!processor.latchParam->get(), "Single Latch should be off by default");
             expect(!processor.multiLatchParam->get(), "Multi Latch should be off by default");
             expect(!processor.panicParam->get(), "Panic should be off by default");
@@ -19,7 +19,7 @@ public:
         
         beginTest("Mutual Exclusivity of Latch Modes");
         {
-            LatchyAudioProcessor processor;
+            LittleLatchyAudioProcessor processor;
             
             processor.latchParam->setValueNotifyingHost(1.0f);  // Enable Single Latch
             expect(processor.latchParam->get(), "Single Latch should be on");
@@ -32,7 +32,7 @@ public:
         
         beginTest("Single Latch Note Handling");
         {
-            LatchyAudioProcessor processor;
+            LittleLatchyAudioProcessor processor;
             processor.latchParam->setValueNotifyingHost(1.0f);  // Enable Single Latch
             
             juce::MidiBuffer inputBuffer;
@@ -56,7 +56,7 @@ public:
         
         beginTest("Multi Latch Chord Handling");
         {
-            LatchyAudioProcessor processor;
+            LittleLatchyAudioProcessor processor;
             processor.multiLatchParam->setValueNotifyingHost(1.0f);  // Enable Multi Latch
             
             juce::MidiBuffer inputBuffer;
@@ -79,7 +79,7 @@ public:
         
         beginTest("MIDI Panic");
         {
-            LatchyAudioProcessor processor;
+            LittleLatchyAudioProcessor processor;
             processor.multiLatchParam->setValueNotifyingHost(1.0f);
             
             juce::MidiBuffer inputBuffer;
@@ -101,7 +101,7 @@ public:
     }
 };
 
-static LatchyPluginTests test;
+static LittleLatchyPluginTests test;
 
 int main(int argc, char* argv[])
 {

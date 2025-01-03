@@ -2,17 +2,17 @@
 
 #include "PluginProcessor.h"
 
-class LatchyAudioProcessorEditor : public juce::AudioProcessorEditor
+class LittleLatchyAudioProcessorEditor : public juce::AudioProcessorEditor
 {
 public:
-    explicit LatchyAudioProcessorEditor (LatchyAudioProcessor&);
-    ~LatchyAudioProcessorEditor() override;
+    explicit LittleLatchyAudioProcessorEditor (LittleLatchyAudioProcessor&);
+    ~LittleLatchyAudioProcessorEditor() override;
 
     void paint (juce::Graphics&) override;
     void resized() override;
 
 private:
-    LatchyAudioProcessor& processorRef;
+    LittleLatchyAudioProcessor& processorRef;
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (LatchyAudioProcessorEditor)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (LittleLatchyAudioProcessorEditor)
 };

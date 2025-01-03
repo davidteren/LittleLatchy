@@ -11,31 +11,40 @@ jobs:
     name: ${{ matrix.config.name }}
     runs-on: ${{ matrix.config.os }}
     strategy:
+      fail-fast: false  # Don't cancel other jobs if one fails
       matrix:
         config:
           - {
               name: "Windows VST3",
               os: windows-latest,
               artifact: "Windows-VST3",
-              artifact_path: "build/LittleLatchy_artefacts/Release/VST3/*.vst3/"
+              artifact_path: "build/LittleLatchy_artefacts/Release/VST3/*.vst3/",
+              cmake_generator: "Visual Studio 17 2022",
+              cmake_args: "-A x64"
             }
           - {
               name: "macOS (AU & VST3)",
               os: macos-latest,
               artifact: "macOS-AU-VST3",
-              artifact_path: "build/LittleLatchy_artefacts/Release/**/*.{component,vst3}"
+              artifact_path: "build/LittleLatchy_artefacts/Release/**/*.{component,vst3}",
+              cmake_generator: "Ninja",
+              cmake_args: ""
             }
           - {
               name: "Linux VST3",
               os: ubuntu-latest,
               artifact: "Linux-VST3",
-              artifact_path: "build/LittleLatchy_artefacts/Release/VST3/*.vst3/"
+              artifact_path: "build/LittleLatchy_artefacts/Release/VST3/*.vst3/",
+              cmake_generator: "Ninja",
+              cmake_args: ""
             }
 
     steps:
-    - uses: actions/checkout@v3
+    - name: Checkout code
+      uses: actions/checkout@v3
       with:
         submodules: recursive
+        fetch-depth: 0
 
     - name: Install Linux Dependencies
       if: runner.os == 'Linux'
@@ -76,22 +85,30 @@ jobs:
 
     - name: Install macOS Dependencies
       if: runner.os == 'macOS'
-      run: brew install ninja
+      run: |
+        brew install ninja
+        sudo xcode-select --switch /Applications/Xcode.app
 
-    - name: Install Windows Dependencies
+    - name: Setup Windows Dependencies
       if: runner.os == 'Windows'
-      run: choco install ninja
+      uses: microsoft/setup-msbuild@v1.1
 
     - name: Configure CMake
       shell: bash
       run: |
         cmake -B ${{github.workspace}}/build \
-          -G Ninja \
+          -G "${{ matrix.config.cmake_generator }}" \
+          ${{ matrix.config.cmake_args }} \
           -DCMAKE_BUILD_TYPE=Release
 
     - name: Build
       shell: bash
-      run: cmake --build ${{github.workspace}}/build --config Release
+      run: |
+        if [ "${{ runner.os }}" = "Windows" ]; then
+          cmake --build ${{github.workspace}}/build --config Release --parallel
+        else
+          cmake --build ${{github.workspace}}/build --config Release
+        fi
 
     - name: Test
       working-directory: ${{github.workspace}}/build

@@ -1,0 +1,64 @@
+# Build directories
+build/
+Builds/
+JuceLibraryCode/
+
+# CMake
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+*.cmake
+!CMakeLists.txt
+
+# IDE specific files
+.idea/
+.vscode/
+*.xcodeproj
+*.xcworkspace
+*.suo
+*.user
+*.sln
+*.vcxproj
+*.vcxproj.filters
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+*.component
+
+# macOS specific
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Audio plugin specific
+*.vst
+*.vst3
+*.au
+*.component
+
+# Debug files
+*.dSYM/

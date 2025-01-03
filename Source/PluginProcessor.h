@@ -32,6 +32,11 @@ public:
     void getStateInformation (juce::MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
 
+    // Make parameters public for testing
+    juce::AudioParameterBool* latchParam;
+    juce::AudioParameterBool* multiLatchParam;
+    juce::AudioParameterBool* panicParam;
+
 private:
     // Parameter Listener interface implementation
     void parameterValueChanged(int parameterIndex, float newValue) override;
@@ -52,10 +57,6 @@ private:
     std::vector<HeldNote> currentChordNotes;
     juce::uint32 lastNoteOnTime { 0 };
     const juce::uint32 chordThreshold { 50 }; // ms threshold for chord detection
-    
-    juce::AudioParameterBool* latchParam;
-    juce::AudioParameterBool* multiLatchParam;
-    juce::AudioParameterBool* panicParam;
     
     void handleIncomingMidiMessage(const juce::MidiMessage& message, juce::MidiBuffer& processedMidi, int samplePosition);
     void stopNote(juce::MidiBuffer& processedMidi, int samplePosition, const HeldNote& note);

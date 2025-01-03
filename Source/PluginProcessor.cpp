@@ -3,6 +3,8 @@
 
 LatchyAudioProcessor::LatchyAudioProcessor()
     : AudioProcessor (BusesProperties())
+    , lastNoteOnTime(0)
+    , chordThreshold(50) // ms threshold for chord detection
 {
     addParameter(latchParam = new juce::AudioParameterBool(
         "latch",           // parameterID
@@ -138,10 +140,6 @@ void LatchyAudioProcessor::handleIncomingMidiMessage(const juce::MidiMessage& me
         // Handle Multi Latch mode
         else if (isMultiLatch)
         {
-            static std::vector<HeldNote> currentChordNotes;
-            static juce::uint32 lastNoteOnTime = 0;
-            const juce::uint32 chordThreshold = 50; // ms threshold for chord detection
-            
             juce::uint32 currentTime = juce::Time::getMillisecondCounter();
             
             // If this note is part of a new chord (time gap from last note is significant)

@@ -38,6 +38,9 @@ public:
     juce::AudioParameterBool* multiLatchParam;
     juce::AudioParameterBool* panicParam;
 
+    // Get the parameter state
+    juce::AudioProcessorValueTreeState& getState() { return state; }
+
 private:
     // Parameter Listener interface implementation
     void parameterValueChanged(int parameterIndex, float newValue) override;
@@ -63,6 +66,8 @@ private:
     void stopNote(juce::MidiBuffer& processedMidi, int samplePosition, const HeldNote& note);
     void stopAllNotes(juce::MidiBuffer& processedMidi, int samplePosition);
     void sendAllNotesOff(juce::MidiBuffer& processedMidi, int samplePosition);
+
+    juce::AudioProcessorValueTreeState state;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (LittleLatchyAudioProcessor)
 };

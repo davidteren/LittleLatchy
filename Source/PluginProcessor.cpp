@@ -2,31 +2,29 @@
 #include "PluginEditor.h"
 
 LittleLatchyAudioProcessor::LittleLatchyAudioProcessor()
-    : AudioProcessor (BusesProperties())
-    , lastNoteOnTime(0)
-    , chordThreshold(50) // ms threshold for chord detection
+    : AudioProcessor (BusesProperties()
+                     .withInput  ("Input",  juce::AudioChannelSet::stereo(), true)
+                     .withOutput ("Output", juce::AudioChannelSet::stereo(), true)),
+      latchParam(nullptr),
+      multiLatchParam(nullptr),
+      panicParam(nullptr),
+      lastNoteOnTime(0),
+      chordThreshold(50), // ms threshold for chord detection
+      state(*this, nullptr, "Parameters", {
+          std::make_unique<juce::AudioParameterBool>("latch", "Latch", false),
+          std::make_unique<juce::AudioParameterBool>("multiLatch", "Multi-Latch", false),
+          std::make_unique<juce::AudioParameterBool>("panic", "Panic", false)
+      })
 {
-    addParameter(latchParam = new juce::AudioParameterBool(
-        "latch",           // parameterID
-        "Single Latch",    // parameter name
-        false             // default value
-    ));
-    
-    addParameter(multiLatchParam = new juce::AudioParameterBool(
-        "multiLatch",      // parameterID
-        "Multi Latch",     // parameter name
-        false             // default value
-    ));
-    
-    addParameter(panicParam = new juce::AudioParameterBool(
-        "panic",          // parameterID
-        "MIDI Panic",     // parameter name
-        false             // default value
-    ));
+    // Get parameters from the state
+    latchParam = dynamic_cast<juce::AudioParameterBool*>(state.getParameter("latch"));
+    multiLatchParam = dynamic_cast<juce::AudioParameterBool*>(state.getParameter("multiLatch"));
+    panicParam = dynamic_cast<juce::AudioParameterBool*>(state.getParameter("panic"));
 
-    // Add listeners for the latch parameters
-    latchParam->addListener(this);
-    multiLatchParam->addListener(this);
+    // Add parameter listeners
+    if (latchParam) latchParam->addListener(this);
+    if (multiLatchParam) multiLatchParam->addListener(this);
+    if (panicParam) panicParam->addListener(this);
 }
 
 LittleLatchyAudioProcessor::~LittleLatchyAudioProcessor()
@@ -254,28 +252,30 @@ juce::AudioProcessorEditor* LittleLatchyAudioProcessor::createEditor()
 
 void LittleLatchyAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
 {
-    auto state = juce::ValueTree("MIDIFXState");
-    state.setProperty("latch", latchParam->get(), nullptr);
-    state.setProperty("continuousHold", multiLatchParam->get(), nullptr);
+    auto stateTree = state.copyState();
     
-    std::unique_ptr<juce::XmlElement> xml(state.createXml());
+    // Add custom properties
+    stateTree.setProperty("latchEnabled", latchEnabled.load(), nullptr);
+    stateTree.setProperty("continuousHoldEnabled", continuousHoldEnabled.load(), nullptr);
+    
+    std::unique_ptr<juce::XmlElement> xml(stateTree.createXml());
     copyXmlToBinary(*xml, destData);
 }
 
 void LittleLatchyAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
 {
     std::unique_ptr<juce::XmlElement> xml(getXmlFromBinary(data, sizeInBytes));
-    if (xml.get() != nullptr && xml->hasTagName("MIDIFXState"))
+    
+    if (xml.get() != nullptr)
     {
-        auto state = juce::ValueTree::fromXml(*xml);
-        if (state.hasProperty("latch"))
-        {
-            *latchParam = state["latch"];
-        }
-        if (state.hasProperty("continuousHold"))
-        {
-            *multiLatchParam = state["continuousHold"];
-        }
+        auto stateTree = juce::ValueTree::fromXml(*xml);
+        
+        // Restore parameter states
+        latchEnabled.store(stateTree.getProperty("latchEnabled", false));
+        continuousHoldEnabled.store(stateTree.getProperty("continuousHoldEnabled", false));
+        
+        // Restore plugin state
+        state.replaceState(stateTree);
     }
 }
 

@@ -6,13 +6,13 @@ LatchyAudioProcessor::LatchyAudioProcessor()
 {
     addParameter(latchParam = new juce::AudioParameterBool(
         "latch",           // parameterID
-        "Latch",          // parameter name
+        "Single Latch",    // parameter name
         false             // default value
     ));
     
     addParameter(continuousHoldParam = new juce::AudioParameterBool(
-        "continuousHold",  // parameterID
-        "Continuous Hold", // parameter name
+        "multiLatch",      // parameterID
+        "Multi Latch",     // parameter name
         false             // default value
     ));
     
@@ -117,33 +117,48 @@ void LatchyAudioProcessor::handleIncomingMidiMessage(const juce::MidiMessage& me
     if (message.isNoteOn())
     {
         HeldNote newNote{message.getNoteNumber(), message.getChannel()};
+        bool isMultiLatch = continuousHoldParam->get();
+        bool isSingleLatch = latchEnabled.load() && !isMultiLatch;
         
-        if (latchEnabled.load())
+        // Handle Single Latch mode
+        if (isSingleLatch)
         {
-            // Check if this note is already held
-            auto it = std::find(heldNotes.begin(), heldNotes.end(), newNote);
-            if (it != heldNotes.end())
-            {
-                // If the same note is pressed again while held, stop it
-                stopNote(processedMidi, samplePosition, *it);
-                heldNotes.erase(it);
-                return;
-            }
-            
-            // If continuous hold is disabled, stop the previous note(s)
-            if (!continuousHoldEnabled.load())
-            {
-                stopAllNotes(processedMidi, samplePosition);
-                heldNotes.clear();
-            }
+            // Stop all previous notes in Single Latch mode
+            stopAllNotes(processedMidi, samplePosition);
+            heldNotes.clear();
             
             // Start the new note
             processedMidi.addEvent(message, samplePosition);
             heldNotes.push_back(newNote);
         }
+        // Handle Multi Latch mode
+        else if (isMultiLatch)
+        {
+            static std::vector<HeldNote> currentChordNotes;
+            static juce::uint32 lastNoteOnTime = 0;
+            const juce::uint32 chordThreshold = 50; // ms threshold for chord detection
+            
+            juce::uint32 currentTime = juce::Time::getMillisecondCounter();
+            
+            // If this note is part of a new chord (time gap from last note is significant)
+            if (currentTime - lastNoteOnTime > chordThreshold)
+            {
+                // Stop all previous notes
+                stopAllNotes(processedMidi, samplePosition);
+                heldNotes.clear();
+                currentChordNotes.clear();
+            }
+            
+            // Add the new note to current chord and held notes
+            processedMidi.addEvent(message, samplePosition);
+            currentChordNotes.push_back(newNote);
+            heldNotes.push_back(newNote);
+            
+            lastNoteOnTime = currentTime;
+        }
         else
         {
-            // Normal MIDI pass-through when latch is disabled
+            // Normal MIDI pass-through when no latch is enabled
             processedMidi.addEvent(message, samplePosition);
         }
     }
@@ -154,14 +169,7 @@ void LatchyAudioProcessor::handleIncomingMidiMessage(const juce::MidiMessage& me
         
         if (it != heldNotes.end())
         {
-            // Note is currently held
-            if (!latchEnabled.load() && !continuousHoldEnabled.load())
-            {
-                // If neither latch nor continuous hold is enabled, let the note off through
-                stopNote(processedMidi, samplePosition, *it);
-                heldNotes.erase(it);
-            }
-            // If either latch or continuous hold is enabled, we ignore the note off message
+            // Note is currently held - ignore note-off when in either latch mode
         }
         else
         {

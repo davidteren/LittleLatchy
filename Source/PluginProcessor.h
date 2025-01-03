@@ -44,6 +44,9 @@ private:
     };
     
     std::vector<HeldNote> heldNotes;
+    std::vector<HeldNote> currentChordNotes;
+    juce::uint32 lastNoteOnTime { 0 };
+    const juce::uint32 chordThreshold { 50 }; // ms threshold for chord detection
     
     juce::AudioParameterBool* latchParam;
     juce::AudioParameterBool* continuousHoldParam;

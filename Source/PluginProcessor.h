@@ -2,7 +2,8 @@
 
 #include <juce_audio_processors/juce_audio_processors.h>
 
-class LatchyAudioProcessor : public juce::AudioProcessor
+class LatchyAudioProcessor : public juce::AudioProcessor,
+                           private juce::AudioProcessorParameter::Listener
 {
 public:
     LatchyAudioProcessor();
@@ -32,6 +33,10 @@ public:
     void setStateInformation (const void* data, int sizeInBytes) override;
 
 private:
+    // Parameter Listener interface implementation
+    void parameterValueChanged(int parameterIndex, float newValue) override;
+    void parameterGestureChanged(int parameterIndex, bool gestureIsStarting) override;
+
     std::atomic<bool> latchEnabled { false };
     std::atomic<bool> continuousHoldEnabled { false };
     
@@ -49,7 +54,7 @@ private:
     const juce::uint32 chordThreshold { 50 }; // ms threshold for chord detection
     
     juce::AudioParameterBool* latchParam;
-    juce::AudioParameterBool* continuousHoldParam;
+    juce::AudioParameterBool* multiLatchParam;
     juce::AudioParameterBool* panicParam;
     
     void handleIncomingMidiMessage(const juce::MidiMessage& message, juce::MidiBuffer& processedMidi, int samplePosition);

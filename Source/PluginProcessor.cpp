@@ -10,7 +10,7 @@ LatchyAudioProcessor::LatchyAudioProcessor()
         false             // default value
     ));
     
-    addParameter(continuousHoldParam = new juce::AudioParameterBool(
+    addParameter(multiLatchParam = new juce::AudioParameterBool(
         "multiLatch",      // parameterID
         "Multi Latch",     // parameter name
         false             // default value
@@ -21,6 +21,10 @@ LatchyAudioProcessor::LatchyAudioProcessor()
         "MIDI Panic",     // parameter name
         false             // default value
     ));
+
+    // Add listeners for the latch parameters
+    latchParam->addListener(this);
+    multiLatchParam->addListener(this);
 }
 
 LatchyAudioProcessor::~LatchyAudioProcessor()
@@ -91,7 +95,7 @@ void LatchyAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
     
     // Update state from parameters
     latchEnabled.store(latchParam->get());
-    continuousHoldEnabled.store(continuousHoldParam->get());
+    continuousHoldEnabled.store(multiLatchParam->get());
     
     juce::MidiBuffer processedMidi;
     
@@ -117,7 +121,7 @@ void LatchyAudioProcessor::handleIncomingMidiMessage(const juce::MidiMessage& me
     if (message.isNoteOn())
     {
         HeldNote newNote{message.getNoteNumber(), message.getChannel()};
-        bool isMultiLatch = continuousHoldParam->get();
+        bool isMultiLatch = continuousHoldEnabled.load();
         bool isSingleLatch = latchEnabled.load() && !isMultiLatch;
         
         // Handle Single Latch mode
@@ -229,7 +233,7 @@ void LatchyAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
 {
     auto state = juce::ValueTree("MIDIFXState");
     state.setProperty("latch", latchParam->get(), nullptr);
-    state.setProperty("continuousHold", continuousHoldParam->get(), nullptr);
+    state.setProperty("continuousHold", multiLatchParam->get(), nullptr);
     
     std::unique_ptr<juce::XmlElement> xml(state.createXml());
     copyXmlToBinary(*xml, destData);
@@ -247,10 +251,29 @@ void LatchyAudioProcessor::setStateInformation (const void* data, int sizeInByte
         }
         if (state.hasProperty("continuousHold"))
         {
-            *continuousHoldParam = state["continuousHold"];
+            *multiLatchParam = state["continuousHold"];
         }
     }
 }
+
+void LatchyAudioProcessor::parameterValueChanged(int parameterIndex, float newValue)
+{
+    // Get parameter that changed
+    auto* param = getParameters()[parameterIndex];
+    
+    if (param == latchParam && newValue > 0.5f)
+    {
+        // If Single Latch was enabled, disable Multi Latch
+        *multiLatchParam = false;
+    }
+    else if (param == multiLatchParam && newValue > 0.5f)
+    {
+        // If Multi Latch was enabled, disable Single Latch
+        *latchParam = false;
+    }
+}
+
+void LatchyAudioProcessor::parameterGestureChanged(int, bool) {}
 
 juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 {

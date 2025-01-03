@@ -4,6 +4,11 @@ project(LittleLatchy VERSION 0.1.0)
 # Add JUCE as a subdirectory
 add_subdirectory(JUCE)
 
+# Set JUCE options
+set(JUCE_WEB_BROWSER 0)
+set(JUCE_USE_CURL 0)
+set(JUCE_DISABLE_WEBKIT 1)
+
 # Create the plugin
 juce_add_plugin(LittleLatchy
     COMPANY_NAME "TerenIO"
@@ -27,6 +32,14 @@ target_sources(LittleLatchy
 
 # Set C++ standard
 target_compile_features(LittleLatchy PRIVATE cxx_std_17)
+
+# Add compile definitions
+target_compile_definitions(LittleLatchy PRIVATE
+    JUCE_WEB_BROWSER=0
+    JUCE_USE_CURL=0
+    JUCE_DISABLE_WEBKIT=1
+    JUCE_USE_WEBKIT=0
+)
 
 # Platform-specific settings
 if(APPLE)

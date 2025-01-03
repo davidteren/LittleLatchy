@@ -118,6 +118,31 @@ void LittleLatchyAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     midiMessages.swapWith(processedMidi);
 }
 
+void LittleLatchyAudioProcessor::processBlock (juce::AudioBuffer<double>& buffer, juce::MidiBuffer& midiMessages)
+{
+    // Convert double buffer to float for processing
+    juce::AudioBuffer<float> floatBuffer(buffer.getNumChannels(), buffer.getNumSamples());
+    for (int channel = 0; channel < buffer.getNumChannels(); ++channel)
+    {
+        for (int sample = 0; sample < buffer.getNumSamples(); ++sample)
+        {
+            floatBuffer.setSample(channel, sample, (float)buffer.getSample(channel, sample));
+        }
+    }
+
+    // Process using the float version
+    processBlock(floatBuffer, midiMessages);
+
+    // Copy back to double buffer
+    for (int channel = 0; channel < buffer.getNumChannels(); ++channel)
+    {
+        for (int sample = 0; sample < buffer.getNumSamples(); ++sample)
+        {
+            buffer.setSample(channel, sample, (double)floatBuffer.getSample(channel, sample));
+        }
+    }
+}
+
 void LittleLatchyAudioProcessor::handleIncomingMidiMessage(const juce::MidiMessage& message, juce::MidiBuffer& processedMidi, int samplePosition)
 {
     if (message.isNoteOn())

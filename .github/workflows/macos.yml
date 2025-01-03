@@ -1,0 +1,44 @@
+name: macOS Build
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-macos:
+    name: macOS (AU & VST3)
+    runs-on: macos-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+      with:
+        submodules: recursive
+        fetch-depth: 0
+
+    - name: Install Dependencies
+      run: |
+        brew install ninja
+        sudo xcode-select --switch /Applications/Xcode.app
+
+    - name: Configure CMake
+      run: |
+        cmake -B ${{github.workspace}}/build \
+          -G "Ninja" \
+          -DCMAKE_BUILD_TYPE=Release
+
+    - name: Build
+      run: cmake --build ${{github.workspace}}/build --config Release
+
+    - name: Test
+      working-directory: ${{github.workspace}}/build
+      run: ctest -C Release --output-on-failure
+
+    - name: Upload Artifacts
+      if: success()
+      uses: actions/upload-artifact@v3
+      with:
+        name: macOS-AU-VST3
+        path: build/LittleLatchy_artefacts/Release/**/*.{component,vst3}

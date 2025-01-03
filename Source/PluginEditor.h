@@ -2,17 +2,17 @@
 
 #include "PluginProcessor.h"
 
-class MIDIFXAudioProcessorEditor : public juce::AudioProcessorEditor
+class LatchyAudioProcessorEditor : public juce::AudioProcessorEditor
 {
 public:
-    explicit MIDIFXAudioProcessorEditor (MIDIFXAudioProcessor&);
-    ~MIDIFXAudioProcessorEditor() override;
+    explicit LatchyAudioProcessorEditor (LatchyAudioProcessor&);
+    ~LatchyAudioProcessorEditor() override;
 
     void paint (juce::Graphics&) override;
     void resized() override;
 
 private:
-    MIDIFXAudioProcessor& processorRef;
+    LatchyAudioProcessor& processorRef;
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MIDIFXAudioProcessorEditor)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (LatchyAudioProcessorEditor)
 };

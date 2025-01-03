@@ -2,11 +2,11 @@
 
 #include <juce_audio_processors/juce_audio_processors.h>
 
-class MIDIFXAudioProcessor : public juce::AudioProcessor
+class LatchyAudioProcessor : public juce::AudioProcessor
 {
 public:
-    MIDIFXAudioProcessor();
-    ~MIDIFXAudioProcessor() override;
+    LatchyAudioProcessor();
+    ~LatchyAudioProcessor() override;
 
     void prepareToPlay (double sampleRate, int samplesPerBlock) override;
     void releaseResources() override;
@@ -33,14 +33,26 @@ public:
 
 private:
     std::atomic<bool> latchEnabled { false };
-    int currentLatchedNote { -1 };
-    int currentLatchedChannel { 1 };
-    bool isNotePlaying { false };
+    std::atomic<bool> continuousHoldEnabled { false };
+    
+    struct HeldNote {
+        int noteNumber;
+        int channel;
+        bool operator==(const HeldNote& other) const {
+            return noteNumber == other.noteNumber && channel == other.channel;
+        }
+    };
+    
+    std::vector<HeldNote> heldNotes;
     
     juce::AudioParameterBool* latchParam;
+    juce::AudioParameterBool* continuousHoldParam;
+    juce::AudioParameterBool* panicParam;
     
     void handleIncomingMidiMessage(const juce::MidiMessage& message, juce::MidiBuffer& processedMidi, int samplePosition);
-    void stopCurrentNote(juce::MidiBuffer& processedMidi, int samplePosition);
+    void stopNote(juce::MidiBuffer& processedMidi, int samplePosition, const HeldNote& note);
+    void stopAllNotes(juce::MidiBuffer& processedMidi, int samplePosition);
+    void sendAllNotesOff(juce::MidiBuffer& processedMidi, int samplePosition);
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MIDIFXAudioProcessor)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (LatchyAudioProcessor)
 };

@@ -1,6 +1,6 @@
-# MIDIFX
+# Latchy
 
-A MIDI FX Audio Unit plugin built with JUCE framework.
+A MIDI latch/sustain Audio Unit plugin built with JUCE framework.
 
 ## Requirements
 - JUCE Framework

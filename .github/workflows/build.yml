@@ -8,11 +8,29 @@ on:
 
 jobs:
   build:
-    name: ${{ matrix.os }} Build
-    runs-on: ${{ matrix.os }}
+    name: ${{ matrix.config.name }}
+    runs-on: ${{ matrix.config.os }}
     strategy:
       matrix:
-        os: [macos-latest, ubuntu-latest, windows-latest]
+        config:
+          - {
+              name: "Windows VST3",
+              os: windows-latest,
+              artifact: "Windows-VST3",
+              artifact_path: "build/LittleLatchy_artefacts/Release/VST3/*.vst3/"
+            }
+          - {
+              name: "macOS (AU & VST3)",
+              os: macos-latest,
+              artifact: "macOS-AU-VST3",
+              artifact_path: "build/LittleLatchy_artefacts/Release/**/*.{component,vst3}"
+            }
+          - {
+              name: "Linux VST3",
+              os: ubuntu-latest,
+              artifact: "Linux-VST3",
+              artifact_path: "build/LittleLatchy_artefacts/Release/VST3/*.vst3/"
+            }
 
     steps:
     - uses: actions/checkout@v3
@@ -23,27 +41,70 @@ jobs:
       if: runner.os == 'Linux'
       run: |
         sudo apt-get update
-        sudo apt-get install -y libasound2-dev libjack-jackd2-dev \
-          ladspa-sdk libcurl4-openssl-dev libfreetype6-dev \
-          libx11-dev libxcomposite-dev libxcursor-dev libxcursor-dev \
-          libxext-dev libxinerama-dev libxrandr-dev libxrender-dev \
-          libwebkit2gtk-4.0-dev libglu1-mesa-dev mesa-common-dev
+        sudo apt-get install -y \
+          libasound2-dev \
+          libjack-jackd2-dev \
+          ladspa-sdk \
+          libcurl4-openssl-dev \
+          libfreetype6-dev \
+          libx11-dev \
+          libxcomposite-dev \
+          libxcursor-dev \
+          libxext-dev \
+          libxinerama-dev \
+          libxrandr-dev \
+          libxrender-dev \
+          libwebkit2gtk-4.0-dev \
+          libglu1-mesa-dev \
+          mesa-common-dev \
+          libgtk-3-dev \
+          ninja-build
+
+    - name: Install macOS Dependencies
+      if: runner.os == 'macOS'
+      run: brew install ninja
+
+    - name: Install Windows Dependencies
+      if: runner.os == 'Windows'
+      run: choco install ninja
 
     - name: Configure CMake
-      run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=Release
+      shell: bash
+      run: |
+        cmake -B ${{github.workspace}}/build \
+          -G Ninja \
+          -DCMAKE_BUILD_TYPE=Release
 
     - name: Build
+      shell: bash
       run: cmake --build ${{github.workspace}}/build --config Release
 
     - name: Test
       working-directory: ${{github.workspace}}/build
+      shell: bash
       run: ctest -C Release --output-on-failure
 
     - name: Upload Artifacts
       if: success()
       uses: actions/upload-artifact@v3
       with:
-        name: ${{ matrix.os }}-plugin
-        path: |
-          ${{github.workspace}}/build/**/LittleLatchy.*
-          !**/*.dir/**
+        name: ${{ matrix.config.artifact }}
+        path: ${{ matrix.config.artifact_path }}
+
+  # Create a release when a tag is pushed
+  release:
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v3
+        with:
+          path: artifacts
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: artifacts/**/*
+          draft: false
+          prerelease: false

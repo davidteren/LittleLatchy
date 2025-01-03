@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.15)
-project(LittleLatchy VERSION 1.0.0)
+project(LittleLatchy VERSION 0.1.0)
 
 # Add JUCE as a subdirectory
 add_subdirectory(JUCE)
@@ -9,9 +9,10 @@ juce_add_plugin(LittleLatchy
     COMPANY_NAME "TerenIO"
     PLUGIN_MANUFACTURER_CODE Tern
     PLUGIN_CODE Ltch
-    FORMATS AU
+    FORMATS AU VST3
     PRODUCT_NAME "LittleLatchy"
     IS_MIDI_EFFECT TRUE
+    VST3_CATEGORIES "Fx" "MIDI"
 )
 
 # Add source files
@@ -26,6 +27,16 @@ target_sources(LittleLatchy
 
 # Set C++ standard
 target_compile_features(LittleLatchy PRIVATE cxx_std_17)
+
+# Platform-specific settings
+if(APPLE)
+    set_target_properties(LittleLatchy PROPERTIES
+        XCODE_ATTRIBUTE_CLANG_LINK_OBJC_RUNTIME YES
+        XCODE_ATTRIBUTE_ENABLE_HARDENED_RUNTIME YES
+    )
+elseif(WIN32)
+    # Windows-specific settings if needed
+endif()
 
 # Link with JUCE modules
 target_link_libraries(LittleLatchy

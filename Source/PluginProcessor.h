@@ -32,5 +32,15 @@ public:
     void setStateInformation (const void* data, int sizeInBytes) override;
 
 private:
+    std::atomic<bool> latchEnabled { false };
+    int currentLatchedNote { -1 };
+    int currentLatchedChannel { 1 };
+    bool isNotePlaying { false };
+    
+    juce::AudioParameterBool* latchParam;
+    
+    void handleIncomingMidiMessage(const juce::MidiMessage& message, juce::MidiBuffer& processedMidi, int samplePosition);
+    void stopCurrentNote(juce::MidiBuffer& processedMidi, int samplePosition);
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MIDIFXAudioProcessor)
 };

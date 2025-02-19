@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 # Initialize and update git submodules
 git submodule update --init --recursive

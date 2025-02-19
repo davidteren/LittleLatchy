@@ -31,6 +31,11 @@ A MIDI latch/sustain plugin built with JUCE framework. Version 0.1.0
    cmake --build . --config Release
    ```
 
+Alternatively, you can use the `build_all.sh` script to build the project:
+   ```bash
+   ./build_all.sh
+   ```
+
 ## Testing
 Run the test suite:
 ```bash

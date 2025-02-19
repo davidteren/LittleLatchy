@@ -2,6 +2,8 @@
 
 A MIDI latch/sustain plugin built with JUCE framework. Version 0.1.0
 
+_Last updated: 2025-02-19_
+
 ## Features
 - MIDI note latching/sustain functionality
 - Multiple plugin formats:

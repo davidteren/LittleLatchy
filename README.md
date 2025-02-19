@@ -2,6 +2,8 @@
 
 A MIDI latch/sustain plugin built with JUCE framework. Version 0.1.0
 
+_Last updated: 2025-02-19_
+
 ## Features
 - MIDI note latching/sustain functionality
 - Multiple plugin formats:
@@ -29,11 +31,6 @@ A MIDI latch/sustain plugin built with JUCE framework. Version 0.1.0
    cd build
    cmake ..
    cmake --build . --config Release
-   ```
-
-Alternatively, you can use the `build_all.sh` script to build the project:
-   ```bash
-   ./build_all.sh
    ```
 
 ## Testing
